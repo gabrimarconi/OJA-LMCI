@@ -8,12 +8,7 @@ open_oja_db()
 #install.packages("tidyverse")
 library(tidyverse)
 
-#country <- "IT"
-#year <- 2019
-#lim <- 50000
-#query <- paste("SELECT DISTINCT companyname, general_id FROM estat_dsl2531b_oja.ft_document_en_v8 WHERE ((year_grab_date=" , year , ") AND (idcountry='" , country , "')) LIMIT " , lim)
-#query <- paste("SELECT DISTINCT companyname, general_id FROM estat_dsl2531b_oja.ft_document_en_v8 WHERE ((year_grab_date=2019) AND (idcountry='",country,"')) LIMIT 10000")
-#companies_names_query <- query_athena(query)
+
 
 country <- "IT"
 
@@ -21,6 +16,7 @@ country <- "IT"
 
 
 ###creating a table with company names' frequency, sorted by frequency or company name
+
 #query and deduplication
 #companies_names_query <- query_athena("SELECT companyname, general_id FROM estat_dsl2531b_oja.ft_document_en_v8 WHERE idcountry='IT' ORDER BY RAND()  LIMIT 1000000")
 query <- paste0("SELECT companyname, general_id FROM estat_dsl2531b_oja.ft_document_en_v8 WHERE idcountry='",country,"' ORDER BY RAND()  LIMIT 1000000")
@@ -38,7 +34,6 @@ colnames(companies_names_dataframe) <- c("companyname","Freq")
 companies_names_dataframe <- arrange(companies_names_dataframe , desc(Freq))
 companies_names_dataframe_bynames <- arrange(companies_names_dataframe , companyname)
 str(companies_names_dataframe)
-
 
 #doing some standardisation of company names and dropping empty company names
 companies_names_dataframe$companyname <- str_to_lower(companies_names_dataframe$companyname)
@@ -74,7 +69,9 @@ dim(companies_names_dataframe)
 #companies_names_dataframe <- companies_names_dataframe[!is.na(companies_names_dataframe$companyname) , ]
 
 
-# generating a table of number of companies having x ads
+### generating a table of number of companies having x ads
+
+# generate a frequency table from the list of companies
 companies_freqtable <- as.data.frame(table(companies_names_dataframe$Freq))
 colnames(companies_freqtable) <- c("ads_per_company" , "n_companies")
 #ensuring that the variables of this table are numeric. NB: as.numeric does not work well for the variable ads_per_company, so I have to get the numeric value in a different way (through a merge)
@@ -92,8 +89,6 @@ companies_freqtable$cum_n_companies <- cumsum(companies_freqtable$n_companies)
 head(companies_freqtable)
 
 
-
-
 ### print and view output
 
 #print output
@@ -101,17 +96,17 @@ write.csv(companies_freqtable , "companies_freqtable_IT.csv")
 write.csv(companies_names_dataframe , "companies_names_dataframe_IT.csv")
 write.csv(filteredout , "filteredout.csv")
 #cumulative distribution of ads and company names
-View(companies_freqtable)
+head(companies_freqtable)
 # list of company names by number of ads and alphabetical order
-View(companies_names_dataframe)
-View(companies_names_dataframe_bynames)
+head(companies_names_dataframe)
+head(companies_names_dataframe_bynames)
 #total number of distinct company names found (with an upper bound due to the limit of obs allowed)
 sum(companies_freqtable$n_companies)
 #total number of distinct company and of job ads that are filtered out
 sum(filteredout$Freq)
 sum(companies_names_dataframe$Freq)
 #filteredout and blacklists
-View(filteredout)
+head(filteredout)
 blacklist
 blacklist_exact
 
